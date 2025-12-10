@@ -2,7 +2,7 @@
   "expo": {
     "name": "JobActualizador",
     "slug": "jobactualizador",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "scheme": "jobactualizador",
     "orientation": "portrait",
     "icon": "./assets/images/icono_app.png",
