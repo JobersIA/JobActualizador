@@ -13,6 +13,7 @@
 
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
+import { cacheDirectory } from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { Alert, BackHandler, Platform } from 'react-native';
 import ApiManager from './ApiManagerService';
@@ -130,7 +131,7 @@ class UpdateService {
       }
 
       const fileName = downloadUrl.split('/').pop() || 'update.apk';
-      const fileUri = FileSystem.cacheDirectory + fileName;
+      const fileUri = cacheDirectory + fileName;
 
       if (DEBUG) {
         console.log('Descargando archivo:', fileName);
@@ -139,7 +140,7 @@ class UpdateService {
 
       // Eliminar APKs antiguos
       try {
-        const cacheDir = FileSystem.cacheDirectory;
+        const cacheDir = cacheDirectory;
         if (cacheDir) {
           const files = await FileSystem.readDirectoryAsync(cacheDir);
           const apkFiles = files.filter(file => file.endsWith('.apk'));
