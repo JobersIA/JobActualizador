@@ -12,8 +12,8 @@
 //Teléfono: 626 99 09 26
 
 import Constants from 'expo-constants';
+import { File, Paths, Directory } from 'expo-file-system/next';
 import * as FileSystem from 'expo-file-system';
-import { cacheDirectory } from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { Alert, BackHandler, Platform } from 'react-native';
 import ApiManager from './ApiManagerService';
@@ -131,39 +131,27 @@ class UpdateService {
       }
 
       const fileName = downloadUrl.split('/').pop() || 'update.apk';
-      const fileUri = cacheDirectory + fileName;
+      const cacheDir = Paths.cache;
+      const fileUri = `${cacheDir.uri}/${fileName}`;
 
       if (DEBUG) {
         console.log('Descargando archivo:', fileName);
         console.log('Ruta de descarga:', fileUri);
       }
 
-      // Eliminar APKs antiguos
+      // Eliminar APKs antiguos usando la nueva API
       try {
-        const cacheDir = cacheDirectory;
-        if (cacheDir) {
-          const files = await FileSystem.readDirectoryAsync(cacheDir);
-          const apkFiles = files.filter(file => file.endsWith('.apk'));
-
-          for (const apkFile of apkFiles) {
-            await FileSystem.deleteAsync(cacheDir + apkFile, { idempotent: true });
+        const cacheDirectory = new Directory(cacheDir);
+        if (cacheDirectory.exists) {
+          const files = await cacheDirectory.list();
+          for (const item of files) {
+            if (item instanceof File && item.uri.endsWith('.apk')) {
+              await item.delete();
+            }
           }
         }
       } catch (deleteError) {
         if (DEBUG) console.log('No se pudieron eliminar archivos antiguos:', deleteError);
-      }
-
-      // Verificar espacio en disco
-      const diskSpace = await FileSystem.getFreeDiskStorageAsync();
-      const MIN_SPACE_MB = 100;
-      const MIN_SPACE_BYTES = MIN_SPACE_MB * 1024 * 1024;
-
-      if (diskSpace < MIN_SPACE_BYTES) {
-        Alert.alert(
-          'Espacio Insuficiente',
-          `No hay suficiente espacio en el dispositivo.\n\nEspacio libre: ${Math.round(diskSpace / (1024 * 1024))} MB\nRequerido: ${MIN_SPACE_MB} MB`
-        );
-        return false;
       }
 
       const downloadResumable = FileSystem.createDownloadResumable(
