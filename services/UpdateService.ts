@@ -1,8 +1,22 @@
+//╔═══════════════════════════════════════════════════════════╗
+//║       ██╗ ██████╗ ██████╗ ███████╗██████╗ ███████╗        ║
+//║       ██║██╔═══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝        ║
+//║       ██║██║   ██║██████╔╝█████╗  ██████╔╝███████╗        ║
+//║  ██   ██║██║   ██║██╔══██╗██╔══╝  ██╔══██╗╚════██║        ║
+//║  ╚█████╔╝╚██████╔╝██████╔╝███████╗██║  ██║███████║        ║
+//║   ╚════╝  ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝        ║
+//╚═══════════════════════════════════════════════════════════╝
+//10-12-2025: UpdateService.ts
+//Autor: Ramón San Félix Ramón
+//Email: rsanfelix@jobers.net
+//Teléfono: 626 99 09 26
+
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { Alert, BackHandler, Platform } from 'react-native';
 import ApiManager from './ApiManagerService';
+import SimulationService from './SimulationService';
 import { UpdateInfo, AppVersionInfo } from '../types';
 
 const controller = "Sistema";
@@ -23,12 +37,19 @@ class UpdateService {
   async checkForUpdates(): Promise<UpdateInfo | null> {
     try {
       const plataforma = Platform.OS === 'android' ? 'Android' : 'iOS';
-      const currentVersion = Constants.expoConfig?.version || '1.0.0';
+
+      // Usar versión simulada si está habilitada
+      const currentVersion = SimulationService.getAppVersion();
+      const isSimulated = SimulationService.isEnabled();
 
       if (DEBUG) {
         console.log('=== CHECK UPDATES ===');
         console.log('Plataforma:', plataforma);
         console.log('Versión Actual:', currentVersion);
+        console.log('Modo Simulación:', isSimulated ? 'ACTIVADO' : 'desactivado');
+        if (isSimulated) {
+          console.log('Versión Real APK:', SimulationService.getRealAppVersion());
+        }
       }
 
       const method = "GetAppVersion";
@@ -91,7 +112,11 @@ class UpdateService {
     }
   }
 
-  async downloadAndInstall(downloadUrl: string, onProgress?: (progress: number) => void): Promise<boolean> {
+  async downloadAndInstall(
+    downloadUrl: string,
+    onProgress?: (progress: number) => void,
+    targetVersion?: string
+  ): Promise<boolean> {
     if (Platform.OS !== 'android') {
       Alert.alert('Error', 'Auto-actualización solo disponible en Android');
       return false;
@@ -101,6 +126,7 @@ class UpdateService {
       if (DEBUG) {
         console.log('=== INICIO DESCARGA DE ACTUALIZACIÓN ===');
         console.log('URL de descarga:', downloadUrl);
+        console.log('Modo Simulación:', SimulationService.isEnabled() ? 'ACTIVADO' : 'desactivado');
       }
 
       const fileName = downloadUrl.split('/').pop() || 'update.apk';
@@ -168,6 +194,18 @@ class UpdateService {
               text: 'Instalar',
               onPress: async () => {
                 try {
+                  // Si está en modo simulación, simular la instalación
+                  if (SimulationService.isEnabled()) {
+                    await SimulationService.simulateSuccessfulInstall(targetVersion);
+                    Alert.alert(
+                      'Simulación',
+                      `Instalación simulada completada.\n\nNueva versión: ${SimulationService.getAppVersion()}\nFecha: ${new Date().toLocaleString()}`,
+                      [{ text: 'OK', onPress: () => resolve(true) }]
+                    );
+                    return;
+                  }
+
+                  // Instalación real
                   const contentUri = await FileSystem.getContentUriAsync(uri);
 
                   if (DEBUG) console.log('Content URI:', contentUri);

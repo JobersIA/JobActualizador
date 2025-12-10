@@ -3,14 +3,15 @@
     "name": "JobActualizador",
     "slug": "jobactualizador",
     "version": "1.0.0",
+    "scheme": "jobactualizador",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/icono_app.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#228B22"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,8 +20,8 @@
     "android": {
       "package": "com.rsrsystem.jobactualizador",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/icono_app.png",
+        "backgroundColor": "#228B22"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -31,12 +32,17 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
+    "plugins": [
+      "expo-router"
+    ],
     "extra": {
       "eas": {
-        "projectId": ""
-      }
+        "projectId": "ff21a4f5-10c0-4aad-a731-0a9d089b0a23"
+      },
+      "router": {}
     }
   }
 }
